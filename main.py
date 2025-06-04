@@ -12,7 +12,7 @@ import nltk
 
 import statistics
 from statistics import variance
-from sentimentPreprocessor import SentimentPreprocessor
+from linguisticPreprocessor import LinguisticPreprocessor
 
 #============================= Stage 0: Data Preparation =====================================
 zip_path = "mbti-type.zip"
@@ -33,12 +33,12 @@ else:
 
 
 #-------------- 高Part Start: 訓練集情感前處理 （如果已經產生新資料集就不用重複執行） ----------
-sp = SentimentPreprocessor(nltk_data_path="./nltk_data")
-sp.setup_nltk()
-sp.load_nrc_lexicon("./OneFilePerEmotion")
+lp = LinguisticPreprocessor(nltk_data_path="./nltk_data")
+lp.setup_nltk()
+lp.load_nrc_lexicon("./OneFilePerEmotion")
 
 df = pd.read_csv("mbti_1.csv")
-df_withSentiment = sp.generate_features(df, text_column="posts")
+df_withSentiment = lp.generate_features(df, text_column="posts")
 print(df_withSentiment.head())
 
 df_withSentiment.to_csv("mbti_1_with_sentiment.csv", index=False)

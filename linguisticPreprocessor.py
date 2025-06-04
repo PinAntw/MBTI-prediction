@@ -7,7 +7,7 @@ import pandas as pd
 import nltk
 from nltk import pos_tag, word_tokenize, sent_tokenize
 
-class SentimentPreprocessor:
+class LinguisticPreprocessor:
     def __init__(self, nltk_data_path="./nltk_data"):
         self.nltk_data_path = nltk_data_path
         self.emotions = ['anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise', 'trust']
