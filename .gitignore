@@ -1,0 +1,6 @@
+# 忽略 NLTK 資料夾
+nltk_data/
+
+# 忽略原始資料與產出的結果檔案
+mbti_1.csv
+mbti_1_with_sentiment.csv
