@@ -1,0 +1,7 @@
+torch
+transformers
+sentence-transformers
+vaderSentiment
+tqdm
+pandas
+numpy
