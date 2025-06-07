@@ -24,6 +24,7 @@ from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import GridSearchCV
 from tqdm import tqdm
+from sklearn.preprocessing import MinMaxScaler
 
 from linguisticPreprocessor import LinguisticPreprocessor
 from sentimentPreprocessor import SentimentPreprocessor
@@ -110,12 +111,27 @@ minilm_df = expand_vector_column(mbti_df, 'minilm_vector', 'minilm')
 
 mbti_df = pd.concat([mbti_df.drop(['type', 'posts', 'bert_vector', 'minilm_vector'], axis=1), bert_df, minilm_df], axis=1)
 
+# ====== 插入前處理動作 ======
+
+# 1. 對指定欄位進行 MinMax 縮放
+need_scaling = ['anger', 'anticipation', 'disgust','fear','joy','sadness','surprise','trust']
+scaler = MinMaxScaler()
+mbti_df[need_scaling] = scaler.fit_transform(mbti_df[need_scaling])
+
+# 2. 對 vader_label 做 one-hot encoding，並轉換 bool 欄位
+vader_one_hot = pd.get_dummies(mbti_df['vader_label'], prefix='vader')
+mbti_df = pd.concat([mbti_df.drop(columns=['vader_label']), vader_one_hot], axis=1)
+bool_cols = mbti_df.select_dtypes(include='bool').columns
+mbti_df[bool_cols] = mbti_df[bool_cols].astype(int)
+
+
 tfidf_cols = [col for col in mbti_df.columns if col.startswith("tfidf_")]
 bert_cols = [col for col in mbti_df.columns if col.startswith("bert_") or col.startswith("minilm_")]
-sentiment_cols = ['vader_pos', 'vader_neu', 'vader_neg', 'vader_compound']
-linguistic_cols = [col for col in mbti_df.columns if col not in (tfidf_cols + bert_cols + sentiment_cols + ['E/I', 'S/N', 'T/F', 'J/P', 'Unnamed: 0', 'vader_label'])]
+sentiment_cols = ['vader_pos', 'vader_neu', 'vader_neg', 'vader_compound','vader_label']
+linguistic_cols = [col for col in mbti_df.columns if col not in (tfidf_cols + bert_cols + sentiment_cols + ['E/I', 'S/N', 'T/F', 'J/P', 'Unnamed: 0'])]
 
 feature_cols = tfidf_cols + bert_cols + sentiment_cols + linguistic_cols
+
 X = mbti_df.select_dtypes(include=['number'])
 y_EI = mbti_df['E/I']
 y_SN = mbti_df['S/N']
@@ -174,68 +190,196 @@ print(f"2. BERT + 詞語統計 + 情感分析：{len(feature_set_2)} 維")
 print(f"3. TF-IDF + BERT + 詞語統計 + 情感分析（全特徵）：{X.shape[1]} 維")
 
 #==================================Stage 3:  Model Training ==================================================
-# #-------------- KNN Part --------
-# raw_data = {
-#     'EI': (X_train_EI, y_train_EI),
-#     'SN': (X_train_SN, y_train_SN),
-#     'TF': (X_train_TF, y_train_TF),
-#     'JP': (X_train_JP, y_train_JP)
-# }
-# split_data = {}
+#-------------- KNN Part TF-IDF + 詞語統計 + 情感分析子資料集--------
+raw_data = {
+    'EI': (X_train_EI_1, y_train_EI),
+    'SN': (X_train_SN_1, y_train_SN),
+    'TF': (X_train_TF_1, y_train_TF),
+    'JP': (X_train_JP_1, y_train_JP)
+}
+split_data = {}
 
-# # 儲存每個維度的結果
-# search_results = {}
-# # 儲存最佳模型
-# knn_models = {}
+# 儲存每個維度的結果
+search_results = {}
+# 儲存最佳模型
+knn_models = {}
 
-# # Step 1: 拆分與標準化
-# for dim, (X, y) in raw_data.items():
-#     X_tr, X_val, y_tr, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-#     scaler = StandardScaler()
-#     X_tr_scaled = scaler.fit_transform(X_tr)
-#     X_val_scaled = scaler.transform(X_val)
-#     split_data[dim] = (X_tr_scaled, X_val_scaled, y_tr, y_val)
+# Step 1: 拆分與標準化
+for dim, (X, y) in raw_data.items():
+    X_tr, X_val, y_tr, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    X_tr_scaled = scaler.fit_transform(X_tr)
+    X_val_scaled = scaler.transform(X_val)
+    split_data[dim] = (X_tr_scaled, X_val_scaled, y_tr, y_val)
 
-# # Step 2: 調參與記錄交叉驗證準確率
-# param_grid = {
-#     'n_neighbors': [3, 5, 7, 9],
-#     'weights': ['uniform', 'distance']
-# }
+# Step 2: 調參與記錄交叉驗證準確率
+param_grid = {
+    'n_neighbors': [3, 5, 7, 9],
+    'weights': ['uniform', 'distance']
+}
 
-# for dim in tqdm(['EI', 'SN', 'TF', 'JP'], desc="KNN GridSearch"):
-#     X_train, X_val, y_train, y_val = split_data[dim]
-#     grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv=5, scoring='accuracy', return_train_score=True, n_jobs=-1)
-#     grid.fit(X_train, y_train)
+for dim in tqdm(['EI', 'SN', 'TF', 'JP'], desc="KNN GridSearch"):
+    X_train, X_val, y_train, y_val = split_data[dim]
+    grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv=5, scoring='accuracy', return_train_score=True, n_jobs=-1)
+    grid.fit(X_train, y_train)
 
-#     best_model = grid.best_estimator_
-#     y_pred = best_model.predict(X_val)
+    best_model = grid.best_estimator_
+    y_pred = best_model.predict(X_val)
 
-#     print(f"\n----- {dim} dimension -----")
-#     print("Best params:", grid.best_params_)
-#     print(classification_report(y_val, y_pred))
+    print(f"\n----- {dim} dimension -----")
+    print("Best params:", grid.best_params_)
+    print(classification_report(y_val, y_pred))
 
-#     # 儲存
-#     knn_models[dim] = best_model
-#     results_df = pd.DataFrame(grid.cv_results_)
-#     search_results[dim] = results_df
+    # 儲存
+    knn_models[dim] = best_model
+    results_df = pd.DataFrame(grid.cv_results_)
+    search_results[dim] = results_df
 
-# # Step 3: 繪圖顯示所有維度的 KNN 調參結果
-# plt.figure(figsize=(12, 8))
+# Step 3: 繪圖顯示所有維度的 KNN 調參結果
+plt.figure(figsize=(12, 8))
 
-# for dim, results_df in search_results.items():
-#     for weight in results_df['param_weights'].unique():
-#         subset = results_df[results_df['param_weights'] == weight]
-#         plt.plot(
-#             subset['param_n_neighbors'],
-#             subset['mean_test_score'],
-#             label=f'{dim} (weights={weight})'
-#         )
+for dim, results_df in search_results.items():
+    for weight in results_df['param_weights'].unique():
+        subset = results_df[results_df['param_weights'] == weight]
+        plt.plot(
+            subset['param_n_neighbors'],
+            subset['mean_test_score'],
+            label=f'{dim} (weights={weight})'
+        )
 
-# plt.xlabel('k (n_neighbors)', fontsize=12)
-# plt.ylabel('Cross-Validation Accuracy', fontsize=12)
-# plt.title('KNN Accuracy vs k (All MBTI Dimensions)', fontsize=14)
-# plt.legend()
-# plt.grid(True)
-# plt.tight_layout()
-# # plt.show()
-# #==================================Stage 4: Predict & Model Evaluation =======================================
+plt.xlabel('k (n_neighbors)', fontsize=12)
+plt.ylabel('Cross-Validation Accuracy', fontsize=12)
+plt.title('KNN Accuracy vs k (All MBTI Dimensions)', fontsize=14)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+#-------------- KNN Part BERT + 詞語統計 + 情感分析子資料集 --------
+raw_data = {
+    'EI': (X_train_EI_2, y_train_EI),
+    'SN': (X_train_SN_2, y_train_SN),
+    'TF': (X_train_TF_2, y_train_TF),
+    'JP': (X_train_JP_2, y_train_JP)
+}
+split_data = {}
+
+# 儲存每個維度的結果
+search_results = {}
+# 儲存最佳模型
+knn_models = {}
+
+# Step 1: 拆分與標準化
+for dim, (X, y) in raw_data.items():
+    X_tr, X_val, y_tr, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    X_tr_scaled = scaler.fit_transform(X_tr)
+    X_val_scaled = scaler.transform(X_val)
+    split_data[dim] = (X_tr_scaled, X_val_scaled, y_tr, y_val)
+
+# Step 2: 調參與記錄交叉驗證準確率
+param_grid = {
+    'n_neighbors': [3, 5, 7, 9],
+    'weights': ['uniform', 'distance']
+}
+
+for dim in tqdm(['EI', 'SN', 'TF', 'JP'], desc="KNN GridSearch"):
+    X_train, X_val, y_train, y_val = split_data[dim]
+    grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv=5, scoring='accuracy', return_train_score=True, n_jobs=-1)
+    grid.fit(X_train, y_train)
+
+    best_model = grid.best_estimator_
+    y_pred = best_model.predict(X_val)
+
+    print(f"\n----- {dim} dimension -----")
+    print("Best params:", grid.best_params_)
+    print(classification_report(y_val, y_pred))
+
+    # 儲存
+    knn_models[dim] = best_model
+    results_df = pd.DataFrame(grid.cv_results_)
+    search_results[dim] = results_df
+
+# Step 3: 繪圖顯示所有維度的 KNN 調參結果
+plt.figure(figsize=(12, 8))
+
+for dim, results_df in search_results.items():
+    for weight in results_df['param_weights'].unique():
+        subset = results_df[results_df['param_weights'] == weight]
+        plt.plot(
+            subset['param_n_neighbors'],
+            subset['mean_test_score'],
+            label=f'{dim} (weights={weight})'
+        )
+
+plt.xlabel('k (n_neighbors)', fontsize=12)
+plt.ylabel('Cross-Validation Accuracy', fontsize=12)
+plt.title('KNN Accuracy vs k (All MBTI Dimensions)', fontsize=14)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+#-------------- KNN Part --------
+raw_data = {
+    'EI': (X_train_EI, y_train_EI),
+    'SN': (X_train_SN, y_train_SN),
+    'TF': (X_train_TF, y_train_TF),
+    'JP': (X_train_JP, y_train_JP)
+}
+split_data = {}
+
+# 儲存每個維度的結果
+search_results = {}
+# 儲存最佳模型
+knn_models = {}
+
+# Step 1: 拆分與標準化
+for dim, (X, y) in raw_data.items():
+    X_tr, X_val, y_tr, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    X_tr_scaled = scaler.fit_transform(X_tr)
+    X_val_scaled = scaler.transform(X_val)
+    split_data[dim] = (X_tr_scaled, X_val_scaled, y_tr, y_val)
+
+# Step 2: 調參與記錄交叉驗證準確率
+param_grid = {
+    'n_neighbors': [3, 5, 7, 9],
+    'weights': ['uniform', 'distance']
+}
+
+for dim in tqdm(['EI', 'SN', 'TF', 'JP'], desc="KNN GridSearch"):
+    X_train, X_val, y_train, y_val = split_data[dim]
+    grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv=5, scoring='accuracy', return_train_score=True, n_jobs=-1)
+    grid.fit(X_train, y_train)
+
+    best_model = grid.best_estimator_
+    y_pred = best_model.predict(X_val)
+
+    print(f"\n----- {dim} dimension -----")
+    print("Best params:", grid.best_params_)
+    print(classification_report(y_val, y_pred))
+
+    # 儲存
+    knn_models[dim] = best_model
+    results_df = pd.DataFrame(grid.cv_results_)
+    search_results[dim] = results_df
+
+# Step 3: 繪圖顯示所有維度的 KNN 調參結果
+plt.figure(figsize=(12, 8))
+
+for dim, results_df in search_results.items():
+    for weight in results_df['param_weights'].unique():
+        subset = results_df[results_df['param_weights'] == weight]
+        plt.plot(
+            subset['param_n_neighbors'],
+            subset['mean_test_score'],
+            label=f'{dim} (weights={weight})'
+        )
+
+plt.xlabel('k (n_neighbors)', fontsize=12)
+plt.ylabel('Cross-Validation Accuracy', fontsize=12)
+plt.title('KNN Accuracy vs k (All MBTI Dimensions)', fontsize=14)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+#==================================Stage 4: Predict & Model Evaluation =======================================
