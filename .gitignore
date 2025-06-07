@@ -4,4 +4,4 @@ nltk_data/
 # 忽略原始資料與產出的結果檔案
 mbti_1.csv
 mbti_1_with_sentiment.csv
-mbti_1_full.csv
+mbti_full.csv
