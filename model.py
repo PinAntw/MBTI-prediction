@@ -6,7 +6,10 @@ from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 import numpy as np
-
+from sklearn.metrics import (
+    accuracy_score, f1_score, precision_score, recall_score,
+    roc_auc_score
+)
 def get_models():
     rf_params = {
         'n_estimators': 200,
@@ -40,7 +43,7 @@ def get_scorers():
         'ROC_AUC': make_scorer(roc_auc_score, average='macro', multi_class='ovo')
     }
 
-def run_cv_model(model, X, y, model_name, scoring_metrics=None, cv_folds=5):
+def run_cv_model(model, X, y, model_name, scoring_metrics=None, cv_folds=2):
     if scoring_metrics is None:
         scoring_metrics = get_scorers()
 
@@ -63,3 +66,27 @@ def get_soft_voting_ensemble(models: dict):
         estimators=[(name, clf) for name, clf in models.items()],
         voting='soft'
     )
+def evaluate_on_test(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+
+    results = {
+        'F1': f1_score(y_test, y_pred, average='macro'),
+        'Accuracy': accuracy_score(y_test, y_pred),
+        'Precision': precision_score(y_test, y_pred, average='macro'),
+        'Recall': recall_score(y_test, y_pred, average='macro'),
+    }
+
+    try:
+        if hasattr(model, "predict_proba"):
+            y_proba = model.predict_proba(X_test)
+            if y_proba.shape[1] == 2:
+                results['ROC_AUC'] = roc_auc_score(y_test, y_proba[:, 1])
+            else:
+                results['ROC_AUC'] = roc_auc_score(y_test, y_proba, multi_class='ovo', average='macro')
+        else:
+            results['ROC_AUC'] = np.nan
+    except Exception as e:
+        results['ROC_AUC'] = np.nan
+        print(f"無法計算 ROC_AUC：{e}")
+
+    return results
