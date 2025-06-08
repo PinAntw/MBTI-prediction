@@ -55,6 +55,8 @@ pip install -r requirements.txt
 python main.py
 
 ## 專案結構說明
+
+```
 mbti_prediction/
 ├── main.py                   # 主實驗控制腳本（特徵組合、模型比較、結果輸出）
 ├── model/                    # 預訓練模型與向量器儲存區
@@ -68,6 +70,7 @@ mbti_prediction/
 ├── data_utils.py             # 資料載入與切分函數
 ├── requirements.txt          # Python 執行所需套件清單
 └── mbti_full.csv             # 預設輸入資料集（MBTI 人格與貼文）
+```
 
 ## 參考文獻
 
