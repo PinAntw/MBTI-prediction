@@ -53,7 +53,7 @@ from model import get_models, get_scorers, run_cv_model, get_soft_voting_ensembl
 #     else:
 #         print(f"找不到 zip 檔案：{zip_path}")
 
-# #============================= Stage 1: Data Preprocessing =====================================
+# #============================= Data Preprocessing =====================================
 
 # df = pd.read_csv("mbti_1.csv")
 # print(df.head())
@@ -91,7 +91,7 @@ from model import get_models, get_scorers, run_cv_model, get_soft_voting_ensembl
 # mbti_full.to_csv("mbti_full.csv", index=False)
 # print("已生成mbti_full.csv")
 
-#==================================Stage 2: Normalization & SMOTE , Model Training, Evaluation, Prediction==================================================
+#================================== Normalization & SMOTE , Model Training, Evaluation, Prediction==================================================
 mbti_df = load_processed_data()
 feature_dict = get_feature_columns(mbti_df)
 dimensions = ['E/I', 'S/N', 'T/F', 'J/P']
@@ -144,6 +144,9 @@ print("開始第三階段：Ensemble 比較")
 ensemble_results = []
 selected_models = ['RandomForest', 'XGBoost', 'SVM_RBF']
 model_subset = {k: get_models()[k] for k in selected_models}
+
+selected_models_soft = ['RandomForest', 'XGBoost']
+model_subset_soft = {k: get_models()[k] for k in selected_models_soft}
 for dim in dimensions:
     X_train, X_test, y_train, y_test = split_data(mbti_df, dim, selected_feature, feature_dict, smote=True)
 
@@ -160,7 +163,7 @@ for dim in dimensions:
         })
 
     # Soft Voting
-    ensemble = get_soft_voting_ensemble(model_subset)
+    ensemble = get_soft_voting_ensemble(model_subset_soft)
     ensemble.fit(X_train, y_train)
     cv_scores = run_cv_model(ensemble, X_train, y_train, model_name=f"SoftVoting_{dim}")
     test_scores = evaluate_on_test(ensemble, X_test, y_test)

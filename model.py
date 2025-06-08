@@ -72,7 +72,7 @@ def evaluate_on_test(model, X_test, y_test):
     results = {
         'F1': f1_score(y_test, y_pred, average='macro'),
         'Accuracy': accuracy_score(y_test, y_pred),
-        'Precision': precision_score(y_test, y_pred, average='macro'),
+        'Precision': precision_score(y_test, y_pred, average='macro', zero_division=0),
         'Recall': recall_score(y_test, y_pred, average='macro'),
     }
 
