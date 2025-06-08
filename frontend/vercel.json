@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "outputDirectory": "dist/browser",
+  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

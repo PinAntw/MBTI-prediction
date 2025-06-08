@@ -3,5 +3,5 @@ import { MbtiComponent } from './mbti/mbti.component';
 
 export const routes: Routes = [
   { path: '', component: MbtiComponent },
-  { path: 'mbti', component: MbtiComponent } // ← 加這條
+  { path: 'mbti', component: MbtiComponent } 
 ];
