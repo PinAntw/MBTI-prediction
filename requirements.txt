@@ -1,25 +1,69 @@
-# 基礎套件
+annotated-types==0.7.0
+anyio==4.9.0
+attrs==25.3.0
+bleach==6.2.0
+certifi==2025.4.26
+charset-normalizer==3.4.2
+click==8.1.7
+contourpy==1.3.2
+cycler==0.12.1
+fastapi==0.115.12
+filelock==3.18.0
+fonttools==4.58.0
+fsspec==2025.5.1
+h11==0.16.0
+huggingface-hub==0.32.4
+idna==3.10
+imbalanced-learn==0.13.0
+Jinja2==3.1.6
+joblib==1.4.2
+kiwisolver==1.4.8
+MarkupSafe==3.0.2
+matplotlib==3.10.3
+mpmath==1.3.0
+networkx==3.4.2
+nltk==3.9.1
+numpy==2.2.0
+openpyxl==3.1.5
+packaging==23.2
 pandas==2.2.3
-numpy==1.24.4
-scikit-learn==1.2.2
-matplotlib
-nltk
-tqdm
-requests
-uvicorn
-fastapi
-
-# 處理不平衡資料
-imbalanced-learn==0.10.1
-
-# 機器學習模型與工具
-xgboost==1.7.6
-vaderSentiment
-
-# Torch 與 Transformers
-torch>=2.0.0,<2.2.0            # 維持穩定相容性
-transformers==4.24.0           # 與 huggingface_hub 0.10.1 相容
-sentence-transformers==2.2.2   # 相容於 transformers 4.24.0
-
-# 避免 render 部署衝突
-huggingface_hub==0.10.1
+pillow==11.2.1
+protobuf==6.31.1
+pydantic==2.11.5
+pydantic_core==2.33.2
+pyparsing==3.2.3
+python-dateutil==2.9.0.post0
+python-slugify==8.0.4
+pytz==2025.2
+PyYAML==6.0.2
+regex==2024.11.6
+requests==2.32.3
+safetensors==0.5.3
+scikit-learn==1.6.1
+scipy==1.15.3
+sentence-transformers==4.1.0
+six==1.17.0
+sklearn-compat==0.1.3
+sniffio==1.3.1
+sortedcontainers==2.4.0
+starlette==0.46.2
+statsmodels==0.14.4
+sympy==1.14.0
+text-unidecode==1.3
+threadpoolctl==3.6.0
+tokenizers==0.21.1
+torch==2.7.1
+tornado==6.4
+tqdm==4.67.1
+transformers==4.52.4
+trio==0.30.0
+trio-websocket==0.12.2
+typing-inspection==0.4.1
+typing_extensions==4.12.0
+tzdata==2025.2
+urllib3==2.4.0
+uvicorn==0.34.3
+vaderSentiment==3.3.2
+webencodings==0.5.1
+websocket-client==1.8.0
+xgboost==3.0.2
