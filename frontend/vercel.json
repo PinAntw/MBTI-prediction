@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "angular.json",
-      "use": "@vercel/static-build"
-    }
-  ],
   "outputDirectory": "dist/browser",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
