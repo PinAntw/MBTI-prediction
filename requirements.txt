@@ -1,16 +1,25 @@
-pandas
-matplotlib
-nltk
-requests
+# 基礎套件
+pandas==2.2.3
 numpy==1.24.4
 scikit-learn==1.2.2
-imbalanced-learn==0.10.1
-torch>=2.0.0
-transformers==4.20.0
-sentence-transformers==2.2.2
+matplotlib
+nltk
 tqdm
-vaderSentiment
-xgboost==1.7.6
+requests
 uvicorn
 fastapi
+
+# 處理不平衡資料
+imbalanced-learn==0.10.1
+
+# 機器學習模型與工具
+xgboost==1.7.6
+vaderSentiment
+
+# Torch 與 Transformers
+torch>=2.0.0,<2.2.0            # 維持穩定相容性
+transformers==4.24.0           # 與 huggingface_hub 0.10.1 相容
+sentence-transformers==2.2.2   # 相容於 transformers 4.24.0
+
+# 避免 render 部署衝突
 huggingface_hub==0.10.1
