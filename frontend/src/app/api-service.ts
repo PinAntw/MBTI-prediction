@@ -6,7 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://127.0.0.1:8000/api/predict';
+  // private apiUrl = 'http://127.0.0.1:8000/api/predict';
+  private apiUrl = 'https://mbti-prediction-sx36.onrender.com/api/predict';
 
   constructor(private http: HttpClient) {}
 
