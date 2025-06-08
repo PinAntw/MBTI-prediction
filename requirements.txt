@@ -1,7 +1,11 @@
+pandas
+matplotlib
+nltk
+requests
+numpy
+scikit-learn
+imblearn
 torch
 transformers
 sentence-transformers
-vaderSentiment
 tqdm
-pandas
-numpy
