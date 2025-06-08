@@ -66,11 +66,15 @@ def get_feature_columns(df):
 def split_data(df, dimension, feature_set, feature_dict, smote=False):
     X = df[feature_dict[feature_set]]
     y = df[dimension]
-    y_encoded = LabelEncoder().fit_transform(y)
+    le = LabelEncoder()
+    y_encoded = le.fit_transform(y)
+
     print(f"資料切分設定：MBTI 維度 = {dimension}，特徵組合 = {feature_set}，SMOTE = {smote}")
     X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, stratify=y_encoded, random_state=42)
 
     if smote:
         sm = SMOTE(random_state=42)
         X_train, y_train = sm.fit_resample(X_train, y_train)
-    return X_train, X_test, y_train, y_test
+    
+    return X_train, X_test, y_train, y_test, le
+

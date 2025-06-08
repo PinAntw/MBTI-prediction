@@ -1,0 +1,23 @@
+<div class="mbti-container">
+  <h1 class="title">MBTI 預測系統</h1>
+
+  <textarea [(ngModel)]="inputText" 
+            class="input-area" 
+            rows="6" 
+            placeholder="請輸入一段描述你性格或行為的文字">
+  </textarea>
+
+  <button (click)="onSubmit()" class="submit-button"> 分析 MBTI</button>
+
+  <!-- 等待畫面 -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>正在分析中，請稍候...</p>
+  </div>
+
+  <!-- 預測結果 -->
+  <div *ngIf="result && !loading" class="result-card">
+    <h2>預測結果</h2>
+    <p class="mbti-result">{{ result }}</p>
+  </div>
+</div>
