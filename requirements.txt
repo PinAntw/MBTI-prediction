@@ -13,3 +13,4 @@ vaderSentiment
 xgboost==1.7.6
 uvicorn
 fastapi
+huggingface_hub==0.10.1
