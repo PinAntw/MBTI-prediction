@@ -11,3 +11,5 @@ sentence-transformers==2.2.2
 tqdm
 vaderSentiment
 xgboost==1.7.6
+uvicorn
+fastapi
